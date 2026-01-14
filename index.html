@@ -1,0 +1,838 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MeloYou - 极简音乐体验</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700&family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
+    <style>
+        :root {
+            --md-ref-palette-primary-40: #6750a4;
+            --md-ref-palette-primary-80: #d0bcff;
+            --md-ref-palette-primary-90: #eaddff;
+            --md-ref-palette-tertiary-40: #7d5260;
+            --md-ref-palette-tertiary-90: #ffd8e4;
+            --md-ref-palette-neutral-10: #fffbfe;
+            --md-ref-palette-neutral-90: #1c1b1f;
+            --md-ref-palette-neutral-95: #140c13;
+            --md-ref-palette-neutral-variant-90: #49454f;
+            --md-sys-color-primary: var(--md-ref-palette-primary-40);
+            --md-sys-color-on-primary: var(--md-ref-palette-neutral-10);
+            --md-sys-color-primary-container: var(--md-ref-palette-primary-90);
+            --md-sys-color-on-primary-container: var(--md-ref-palette-primary-40);
+            --md-sys-color-tertiary: var(--md-ref-palette-tertiary-40);
+            --md-sys-color-tertiary-container: var(--md-ref-palette-tertiary-90);
+            --md-sys-color-background: #fffbfe;
+            --md-sys-color-on-background: #1c1b1f;
+            --md-sys-color-surface: rgba(255, 255, 255, 0.75);
+            --md-sys-color-on-surface: #1c1b1f;
+            --md-sys-color-surface-variant: rgba(231, 224, 236, 0.5);
+            --md-sys-color-on-surface-variant: #49454f;
+            --md-sys-elevation-2: 0px 4px 8px 3px rgba(0, 0, 0, 0.05), 0px 1px 3px rgba(0, 0, 0, 0.1);
+            --md-sys-elevation-3: 0px 9px 12px 1px rgba(0, 0, 0, 0.05), 0px 3px 16px 2px rgba(0, 0, 0, 0.04);
+            --md-sys-shape-corner-large: 24px;
+            --md-sys-shape-corner-full: 9999px;
+        }
+
+        [data-theme="dark"] {
+            --md-sys-color-primary: var(--md-ref-palette-primary-80);
+            --md-sys-color-on-primary: var(--md-ref-palette-primary-40);
+            --md-sys-color-primary-container: var(--md-ref-palette-primary-40);
+            --md-sys-color-on-primary-container: var(--md-ref-palette-primary-90);
+            --md-sys-color-tertiary: var(--md-ref-palette-tertiary-90);
+            --md-sys-color-tertiary-container: var(--md-ref-palette-tertiary-40);
+            --md-sys-color-background: #141218;
+            --md-sys-color-on-background: #e6e1e5;
+            --md-sys-color-surface: rgba(30, 29, 33, 0.6);
+            --md-sys-color-on-surface: #e6e1e5;
+            --md-sys-color-surface-variant: rgba(49, 48, 51, 0.5);
+            --md-sys-color-on-surface-variant: #cac4d0;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Roboto', 'Noto Sans SC', sans-serif;
+            background-color: var(--md-sys-color-background);
+            color: var(--md-sys-color-on-background);
+            line-height: 1.6;
+            overflow-x: hidden;
+            min-height: 100vh;
+            position: relative;
+        }
+
+        .background-blobs {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            overflow: hidden;
+            pointer-events: none;
+        }
+
+        .blob {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(80px);
+            opacity: 0.6;
+            animation: floatBlob 20s infinite alternate cubic-bezier(0.45, 0.05, 0.55, 0.95);
+        }
+
+        .blob-1 {
+            top: -10%;
+            left: -10%;
+            width: 60vw;
+            height: 60vw;
+            background: var(--md-sys-color-primary-container);
+            animation-delay: 0s;
+        }
+
+        .blob-2 {
+            bottom: -10%;
+            right: -10%;
+            width: 50vw;
+            height: 50vw;
+            background: var(--md-sys-color-tertiary-container);
+            animation-delay: -5s;
+        }
+
+        .blob-3 {
+            top: 40%;
+            left: 30%;
+            width: 40vw;
+            height: 40vw;
+            background: var(--md-sys-color-surface-variant);
+            opacity: 0.4;
+            animation-delay: -10s;
+        }
+
+        @keyframes floatBlob {
+            0% { transform: translate(0, 0) scale(1); }
+            100% { transform: translate(30px, 50px) scale(1.1); }
+        }
+
+        .glass {
+            background: var(--md-sys-color-surface);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border: 1px solid rgba(0, 0, 0, 0.05);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.06);
+        }
+
+        [data-theme="dark"] .glass {
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+        }
+
+        .navbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.3s ease;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--md-sys-color-on-surface);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            text-decoration: none;
+        }
+
+        .logo .material-icons-round {
+            color: var(--md-sys-color-primary);
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+            align-items: center;
+        }
+
+        .nav-links a {
+            color: var(--md-sys-color-on-surface);
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 0.95rem;
+            opacity: 0.8;
+            transition: all 0.2s ease;
+            position: relative;
+        }
+
+        .nav-links a:hover, .nav-links a.active {
+            opacity: 1;
+            color: var(--md-sys-color-primary);
+        }
+
+        .nav-links a::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 2px;
+            bottom: -4px;
+            left: 0;
+            background-color: var(--md-sys-color-primary);
+            transition: width 0.3s ease;
+        }
+
+        .nav-links a:hover::after, .nav-links a.active::after {
+            width: 100%;
+        }
+
+        .theme-toggle {
+            background: transparent;
+            border: none;
+            border-radius: var(--md-sys-shape-corner-full);
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            color: var(--md-sys-color-on-surface);
+            transition: background 0.2s;
+        }
+
+        .theme-toggle:hover {
+            background: rgba(128, 128, 128, 0.1);
+        }
+
+        .mobile-menu-btn {
+            display: none;
+            background: none;
+            border: none;
+            color: var(--md-sys-color-on-surface);
+            cursor: pointer;
+        }
+
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 8rem 2rem 4rem;
+            position: relative;
+        }
+
+        .hero-content {
+            text-align: center;
+            max-width: 800px;
+            z-index: 1;
+            animation: fadeInUp 1s cubic-bezier(0.2, 0.8, 0.2, 1);
+        }
+
+        .hero h1 {
+            font-size: clamp(2.5rem, 6vw, 4.5rem);
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            line-height: 1.1;
+            letter-spacing: -0.02em;
+        }
+
+        .hero h1 span {
+            color: var(--md-sys-color-primary);
+            display: inline-block;
+            position: relative;
+        }
+
+        .hero p {
+            font-size: clamp(1rem, 2vw, 1.25rem);
+            color: var(--md-sys-color-on-surface-variant);
+            margin-bottom: 2.5rem;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+            opacity: 0.9;
+        }
+
+        .btn {
+            padding: 0.8rem 2rem;
+            border-radius: var(--md-sys-shape-corner-full);
+            font-weight: 500;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.3s cubic-bezier(0.2, 0, 0, 1);
+            border: none;
+            font-size: 1rem;
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
+        }
+
+        .btn-primary {
+            background: var(--md-sys-color-primary);
+            color: var(--md-sys-color-on-primary);
+            box-shadow: var(--md-sys-elevation-2);
+        }
+
+        .btn-primary::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transform: translateX(-100%);
+            transition: transform 0.6s;
+        }
+
+        .btn-primary:hover::before {
+            transform: translateX(100%);
+        }
+
+        .btn-primary:hover {
+            box-shadow: var(--md-sys-elevation-3);
+            transform: translateY(-2px) scale(1.02);
+        }
+
+        .btn-secondary {
+            background: rgba(128, 128, 128, 0.1);
+            color: var(--md-sys-color-on-surface);
+            backdrop-filter: blur(4px);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(128, 128, 128, 0.2);
+        }
+
+        .btn-disabled {
+            background: #e0e0e0;
+            color: #9e9e9e;
+            cursor: not-allowed;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            padding: 0.8rem 2rem;
+            border-radius: var(--md-sys-shape-corner-full);
+            font-weight: 500;
+            font-size: 1rem;
+        }
+
+        [data-theme="dark"] .btn-disabled {
+            background: #2c2b30;
+            color: #6c6b70;
+        }
+
+        .section {
+            padding: 6rem 2rem;
+            position: relative;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .section-header {
+            text-align: center;
+            margin-bottom: 4rem;
+        }
+
+        .section-header h2 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            color: var(--md-sys-color-on-surface);
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 2rem;
+        }
+
+        .card {
+            border-radius: var(--md-sys-shape-corner-large);
+            padding: 2.5rem;
+            transition: transform 0.3s cubic-bezier(0.2, 0, 0, 1), box-shadow 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            z-index: 1;
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(255,255,255,0.4), rgba(255,255,255,0));
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            z-index: -1;
+        }
+
+        [data-theme="dark"] .card::before {
+            background: linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0));
+        }
+
+        .card:hover::before {
+            opacity: 1;
+        }
+
+        .card:hover {
+            transform: translateY(-8px);
+            box-shadow: var(--md-sys-elevation-3);
+        }
+
+        .card-icon {
+            width: 64px;
+            height: 64px;
+            background: var(--md-sys-color-primary-container);
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1.5rem;
+            color: var(--md-sys-color-on-primary-container);
+            transition: transform 0.3s ease;
+        }
+
+        .card:hover .card-icon {
+            transform: scale(1.1) rotate(5deg);
+        }
+
+        .card h3 {
+            font-size: 1.5rem;
+            margin-bottom: 0.75rem;
+            font-weight: 600;
+        }
+
+        .card p {
+            opacity: 0.8;
+            font-size: 0.95rem;
+        }
+
+        .developer-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+        }
+
+        .avatar {
+            width: 140px;
+            height: 140px;
+            border-radius: 50%;
+            background: var(--md-sys-color-surface-variant);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 4rem;
+            color: var(--md-sys-color-primary);
+            margin-bottom: 1.5rem;
+            box-shadow: var(--md-sys-elevation-2);
+            position: relative;
+        }
+        
+        .avatar::after {
+            content: '';
+            position: absolute;
+            inset: -4px;
+            border-radius: 50%;
+            background: linear-gradient(45deg, var(--md-sys-color-primary), transparent);
+            z-index: -1;
+            opacity: 0.5;
+        }
+
+        .download-box {
+            text-align: center;
+            padding: 4rem 2rem;
+            border-radius: var(--md-sys-shape-corner-large);
+            max-width: 700px;
+            margin: 0 auto;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .download-box h2 {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .download-info {
+            margin-top: 2rem;
+            font-size: 0.9rem;
+            opacity: 0.7;
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            background: rgba(128, 128, 128, 0.1);
+            border-radius: 100px;
+        }
+
+        .disclaimer-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .disclaimer-list li {
+            margin-bottom: 1.5rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 1px solid rgba(128, 128, 128, 0.15);
+        }
+
+        .disclaimer-list li:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+
+        .disclaimer-list strong {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: var(--md-sys-color-primary);
+            font-size: 1rem;
+        }
+
+        .disclaimer-list p {
+            margin: 0;
+            opacity: 0.8;
+            font-size: 0.9rem;
+            line-height: 1.6;
+        }
+
+        .footer {
+            padding: 2rem;
+            text-align: center;
+            font-size: 0.875rem;
+            opacity: 0.7;
+            background: rgba(0,0,0,0.02);
+        }
+
+        .footer a {
+            color: var(--md-sys-color-primary);
+            text-decoration: none;
+        }
+
+        @media (max-width: 768px) {
+            .navbar {
+                padding: 1rem;
+            }
+
+            .nav-links {
+                position: fixed;
+                top: 70px;
+                left: 0;
+                right: 0;
+                background: var(--md-sys-color-background);
+                flex-direction: column;
+                padding: 2rem;
+                gap: 1.5rem;
+                transform: translateY(-150%);
+                transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+                box-shadow: var(--md-sys-elevation-3);
+                border-bottom-left-radius: 20px;
+                border-bottom-right-radius: 20px;
+            }
+
+            .nav-links.active {
+                transform: translateY(0);
+            }
+
+            .mobile-menu-btn {
+                display: block;
+            }
+
+            .hero {
+                padding-top: 10rem;
+            }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .reveal {
+            opacity: 0;
+            transform: translateY(40px);
+            transition: all 0.8s cubic-bezier(0.2, 0.8, 0.2, 1);
+        }
+
+        .reveal.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    </style>
+</head>
+<body>
+    <div class="background-blobs">
+        <div class="blob blob-1"></div>
+        <div class="blob blob-2"></div>
+        <div class="blob blob-3"></div>
+    </div>
+
+    <nav class="navbar glass">
+        <a href="#" class="logo">
+            <span class="material-icons-round">music_note</span>
+            MeloYou
+        </a>
+        <div class="nav-links" id="navLinks">
+            <a href="#features">功能特色</a>
+            <a href="#about">关于开发</a>
+            <a href="#disclaimer">免责声明</a>
+            <a href="#download" style="color: var(--md-sys-color-primary); font-weight: 700;">下载应用</a>
+        </div>
+        <div style="display: flex; align-items: center; gap: 1rem;">
+            <button class="theme-toggle" id="themeToggle" aria-label="切换主题">
+                <span class="material-icons-round">dark_mode</span>
+            </button>
+            <button class="mobile-menu-btn" id="mobileMenuBtn" aria-label="菜单">
+                <span class="material-icons-round">menu</span>
+            </button>
+        </div>
+    </nav>
+
+    <section class="hero">
+        <div class="hero-content">
+            <h1>聚合音源<br><span>无界聆听</span></h1>
+            <p>MeloYou 是一款纯粹的音乐播放工具。打破平台壁垒，在一个应用中探索海量音乐世界，回归听歌本质。</p>
+            <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+                <a href="#download" class="btn btn-primary">
+                    <span class="material-icons-round">cloud_download</span>
+                    立即下载
+                </a>
+                <a href="#features" class="btn btn-secondary">
+                    <span class="material-icons-round">explore</span>
+                    探索功能
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <section class="section" id="features">
+        <div class="container">
+            <div class="section-header reveal">
+                <h2>核心体验</h2>
+                <p>音乐软件 播放为主</p>
+            </div>
+            <div class="features-grid">
+                <div class="card glass reveal">
+                    <div class="card-icon">
+                        <span class="material-icons-round">library_music</span>
+                    </div>
+                    <h3>多源聚合</h3>
+                    <p>整合主流音乐平台资源，无需频繁切换应用，一键搜索，即时播放。</p>
+                </div>
+                <div class="card glass reveal">
+                    <div class="card-icon">
+                        <span class="material-icons-round">playlist_play</span>
+                    </div>
+                    <h3>歌单同步</h3>
+                    <p>支持导入多平台歌单文件，无缝迁移你的音乐收藏，管理更轻松。</p>
+                </div>
+                <div class="card glass reveal">
+                    <div class="card-icon">
+                        <span class="material-icons-round">sentiment_satisfied_alt</span>
+                    </div>
+                    <h3>极简纯粹</h3>
+                    <p>无广告、无商业推广。界面清爽，交互流畅，专注于音乐本身。</p>
+                </div>
+                <div class="card glass reveal">
+                    <div class="card-icon">
+                        <span class="material-icons-round">phone_android</span>
+                    </div>
+                    <h3>移动优先</h3>
+                    <p>针对移动端深度优化，手势操作便捷，随身携带的私人音乐库。</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="section" id="about">
+        <div class="container">
+            <div class="section-header reveal">
+                <h2>关于项目</h2>
+                <p>始于兴趣，忠于热爱</p>
+            </div>
+            <div class="card glass developer-section reveal" style="max-width: 600px; margin: 0 auto;">
+                <div class="avatar">
+                    <span class="material-icons-round">person</span>
+                </div>
+                <h3>开发者：瓜瓜</h3>
+                <p style="margin: 1rem 0 2rem;">
+                    我是瓜瓜，一名编程爱好者。开发 MeloYou 是为了解决听歌分散的痛点。
+                    这是一个非盈利的个人项目，目前主要适配 Android 手机端。感谢您的使用与支持！
+                </p>
+                <a href="https://qm.qq.com/q/1JemATsbIc" class="btn btn-secondary">
+                    <span class="material-icons-round">email</span>
+                    联系作者
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <section class="section" id="download">
+        <div class="container">
+            <div class="download-box glass reveal">
+                <h2>即刻安装 MeloYou</h2>
+                
+                <a href="https://www.123865.com/s/uIbVTd-1f8mH" target="_blank" id="downloadBtn" class="btn btn-primary" style="padding: 1rem 3rem; font-size: 1.2rem;">
+                    <span class="material-icons-round">download</span>
+                    下载 APK
+                </a>
+                
+                <div id="downloadDisabled" class="btn btn-disabled" style="padding: 1rem 3rem; font-size: 1.2rem;">
+                    <span class="material-icons-round">block</span>
+                    此设备暂不支持
+                </div>
+
+                <div class="download-info" id="deviceInfo">
+                    正在识别设备...
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="section" id="disclaimer">
+        <div class="container">
+            <div class="card glass reveal">
+                <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1.5rem; color: var(--md-sys-color-primary);">
+                    <span class="material-icons-round">gavel</span>
+                    <h3 style="margin: 0;">免责声明</h3>
+                </div>
+                
+                <ul class="disclaimer-list">
+                    <li>
+                        <strong>1. 数据来源</strong>
+                        <p>本软件所有音源均来自互联网公开接口。</p>
+                    </li>
+                    <li>
+                        <strong>2. 使用范围</strong>
+                        <p>本软件仅供个人学习、研究和技术交流使用，请勿用于任何商业用途。</p>
+                    </li>
+                    <li>
+                        <strong>3. 版权说明</strong>
+                        <p>我们尊重知识产权，强烈建议用户支持正版音乐。</p>
+                    </li>
+                    <li>
+                        <strong>4. 免责条款</strong>
+                        <p>使用本软件所产生的一切后果由使用者自行承担，开发者不承担任何法律责任。</p>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </section>
+
+    <footer class="footer glass">
+        <p>&copy; 2026 MeloYou. All rights reserved.</p>
+        <p style="margin-top: 0.5rem;">Made with <span style="color: #e91e63;">&hearts;</span> by GuaGua</p>
+    </footer>
+
+    <script>
+        const themeToggle = document.getElementById('themeToggle');
+        const html = document.documentElement;
+        const savedTheme = localStorage.getItem('theme');
+        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+
+        function setTheme(theme) {
+            html.setAttribute('data-theme', theme);
+            localStorage.setItem('theme', theme);
+            const icon = themeToggle.querySelector('.material-icons-round');
+            icon.textContent = theme === 'dark' ? 'light_mode' : 'dark_mode';
+        }
+
+        if (savedTheme) {
+            setTheme(savedTheme);
+        } else if (prefersDark) {
+            setTheme('dark');
+        }
+
+        themeToggle.addEventListener('click', () => {
+            const current = html.getAttribute('data-theme');
+            setTheme(current === 'dark' ? 'light' : 'dark');
+        });
+
+        const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+        const navLinks = document.getElementById('navLinks');
+
+        mobileMenuBtn.addEventListener('click', () => {
+            navLinks.classList.toggle('active');
+            const icon = mobileMenuBtn.querySelector('.material-icons-round');
+            icon.textContent = navLinks.classList.contains('active') ? 'close' : 'menu';
+        });
+
+        document.querySelectorAll('.nav-links a').forEach(link => {
+            link.addEventListener('click', () => {
+                navLinks.classList.remove('active');
+                mobileMenuBtn.querySelector('.material-icons-round').textContent = 'menu';
+            });
+        });
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('active');
+                }
+            });
+        }, { threshold: 0.1 });
+
+        document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+        function detectDevice() {
+            const ua = navigator.userAgent;
+            const info = document.getElementById('deviceInfo');
+            const downloadBtn = document.getElementById('downloadBtn');
+            const downloadDisabled = document.getElementById('downloadDisabled');
+            
+            if (/Android/i.test(ua)) {
+                info.textContent = '当前环境：Android 系统 | 已适配';
+                info.style.color = 'var(--md-sys-color-primary)';
+                downloadBtn.style.display = 'inline-flex';
+                downloadDisabled.style.display = 'none';
+            } else {
+                let type = 'PC端';
+                if (/iPhone|iPad|iPod/i.test(ua)) type = 'iOS 系统';
+                
+                info.textContent = `当前环境：${type} | 暂不支持`;
+                info.style.color = 'var(--md-sys-color-error)';
+                downloadBtn.style.display = 'none';
+                downloadDisabled.style.display = 'inline-flex';
+            }
+        }
+
+        detectDevice();
+
+        let lastScroll = 0;
+        window.addEventListener('scroll', () => {
+            const navbar = document.querySelector('.navbar');
+            const current = window.scrollY;
+            
+            if (current > 50) {
+                navbar.style.boxShadow = 'var(--md-sys-elevation-2)';
+                navbar.style.background = 'var(--md-sys-color-surface)';
+            } else {
+                navbar.style.boxShadow = 'none';
+                navbar.style.background = 'transparent';
+            }
+            lastScroll = current;
+        });
+    </script>
+</body>
+</html>
